@@ -2,7 +2,7 @@
 /* ---------------- persistence (localStorage, per-viewer, synchronous) ---------------- */
 const STORAGE_KEY = 'quest-state-v2';
 const THEME_KEY = 'quest-theme';
-const DEFAULT_STATE = {xp:0,streak:0,best:0,last:null,completedDate:null,completed:{},games:0,correct:0,typingBest:0,reactionBest:9999,reactionAvgBest:null,mathBest:0,puzzleBest:0,memoryBest:0,snakeBest:0,history:[],exploreCount:0,learnCount:0,sparkSeen:{}};
+const DEFAULT_STATE = {xp:0,streak:0,best:0,last:null,completedDate:null,completed:{},games:0,correct:0,typingBest:0,reactionBest:9999,reactionAvgBest:null,mathBest:0,puzzleBest:0,memoryBest:0,snakeBest:0,minesweeperBest:0,history:[],exploreCount:0,learnCount:0,sparkSeen:{}};
 let S = structuredClone(DEFAULT_STATE);
 
 function loadState(){
@@ -39,6 +39,7 @@ const drills=[
  ['➗','Math arena','Math · 5 min','openMath'],
  ['🧠','Memory match','Memory · 3 min','openMemory'],
  ['🐍','Snake','Arcade · 5 min','openSnake']
+  ['💣','Minesweeper','Logic · 5 min','openMinesweeper']
 ];
 const achievements=[
  ['🌱','First steps','Complete your first daily trail', s=>s.streak>=1],
@@ -486,7 +487,196 @@ function startSnake(){
   }
   loop();
 }
+/* ---------------- Minesweeper ---------------- */
+let msGrid = [], msRows = 9, msCols = 9, msMines = 10;
+let msRevealed = 0, msFlags = 0, msStarted = false, msOver = false;
+let msTimer = 0, msInterval = null;
 
+function openMinesweeper(){
+  msRows = 9; msCols = 9; msMines = 10;
+  msRevealed = 0; msFlags = 0; msStarted = false; msOver = false;
+  msTimer = 0;
+  if(msInterval) clearInterval(msInterval);
+
+  modal(`
+    <h2>Minesweeper</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px;font-size:13px;color:var(--mist)">
+      <span>💣 <b id="msMinesLeft">${msMines}</b></span>
+      <span>⏱ <b id="msTimer">0</b>s</span>
+      <span>Best: <b id="msBest">${S.minesweeperBest || '—'}</b></span>
+    </div>
+    <div id="msBoard" style="display:grid;grid-template-columns:repeat(9,28px);gap:2px;justify-content:center;user-select:none;"></div>
+    <p style="font-size:12px;color:var(--mist);margin-top:10px;text-align:center">
+      Left-click = reveal · Right-click = flag
+    </p>
+    <div class="result" id="res" style="margin-top:8px"></div>
+  `, () => {
+    if(msInterval) clearInterval(msInterval);
+  });
+
+  setTimeout(initMinesweeper, 30);
+}
+
+function initMinesweeper(){
+  const board = document.getElementById('msBoard');
+  if(!board) return;
+
+  // Create empty grid
+  msGrid = Array.from({length: msRows}, () =>
+    Array.from({length: msCols}, () => ({
+      mine: false, revealed: false, flagged: false, adjacent: 0
+    }))
+  );
+
+  // Place mines
+  let placed = 0;
+  while(placed < msMines){
+    const r = Math.floor(Math.random() * msRows);
+    const c = Math.floor(Math.random() * msCols);
+    if(!msGrid[r][c].mine){
+      msGrid[r][c].mine = true;
+      placed++;
+    }
+  }
+
+  // Calculate adjacent numbers
+  for(let r=0; r<msRows; r++){
+    for(let c=0; c<msCols; c++){
+      if(msGrid[r][c].mine) continue;
+      let count = 0;
+      for(let dr=-1; dr<=1; dr++){
+        for(let dc=-1; dc<=1; dc++){
+          const nr = r+dr, nc = c+dc;
+          if(nr>=0 && nr<msRows && nc>=0 && nc<msCols && msGrid[nr][nc].mine) count++;
+        }
+      }
+      msGrid[r][c].adjacent = count;
+    }
+  }
+
+  // Render cells
+  board.innerHTML = '';
+  for(let r=0; r<msRows; r++){
+    for(let c=0; c<msCols; c++){
+      const cell = document.createElement('div');
+      cell.className = 'ms-cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.style.cssText = `
+        width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+        font-size:13px;font-weight:700;border-radius:4px;cursor:pointer;
+        background:var(--panel);border:1px solid var(--line);color:var(--ink);
+      `;
+      cell.oncontextmenu = e => { e.preventDefault(); toggleFlag(r,c); };
+      cell.onclick = () => revealCell(r,c);
+      board.appendChild(cell);
+    }
+  }
+}
+
+function startMsTimer(){
+  if(msStarted) return;
+  msStarted = true;
+  msInterval = setInterval(() => {
+    msTimer++;
+    const el = document.getElementById('msTimer');
+    if(el) el.textContent = msTimer;
+  }, 1000);
+}
+
+function revealCell(r, c){
+  if(msOver || msGrid[r][c].flagged || msGrid[r][c].revealed) return;
+  startMsTimer();
+
+  const cell = msGrid[r][c];
+  cell.revealed = true;
+  msRevealed++;
+
+  const el = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+  if(!el) return;
+
+  if(cell.mine){
+    // Hit a mine → game over
+    el.textContent = '💥';
+    el.style.background = '#e74c3c';
+    el.style.color = '#fff';
+    revealAllMines();
+    msOver = true;
+    clearInterval(msInterval);
+    document.getElementById('res').textContent = '💥 Boom! Try again.';
+    S.games++;
+    save();
+    return;
+  }
+
+  // Safe cell
+  el.style.background = 'var(--bg)';
+  el.style.borderColor = 'transparent';
+  if(cell.adjacent > 0){
+    el.textContent = cell.adjacent;
+    const colors = ['','#3498db','#2ecc71','#e67e22','#e74c3c','#9b59b6','#1abc9c','#34495e','#7f8c8d'];
+    el.style.color = colors[cell.adjacent] || 'var(--ink)';
+  } else {
+    // Flood fill empty cells
+    for(let dr=-1; dr<=1; dr++){
+      for(let dc=-1; dc<=1; dc++){
+        const nr = r+dr, nc = c+dc;
+        if(nr>=0 && nr<msRows && nc>=0 && nc<msCols && !msGrid[nr][nc].revealed){
+          revealCell(nr, nc);
+        }
+      }
+    }
+  }
+
+  // Check win
+  if(msRevealed === msRows * msCols - msMines){
+    msOver = true;
+    clearInterval(msInterval);
+    const xp = 25;
+    S.xp += xp;
+    S.games++;
+    S.correct++;
+    if(!S.minesweeperBest || msTimer < S.minesweeperBest){
+      S.minesweeperBest = msTimer;
+    }
+    document.getElementById('res').textContent = `🏆 Cleared in ${msTimer}s! +${xp} XP`;
+    const bestEl = document.getElementById('msBest');
+    if(bestEl) bestEl.textContent = S.minesweeperBest;
+    save();
+  }
+}
+
+function toggleFlag(r, c){
+  if(msOver || msGrid[r][c].revealed) return;
+  startMsTimer();
+
+  const cell = msGrid[r][c];
+  cell.flagged = !cell.flagged;
+  msFlags += cell.flagged ? 1 : -1;
+
+  const el = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+  if(el){
+    el.textContent = cell.flagged ? '🚩' : '';
+  }
+
+  const left = document.getElementById('msMinesLeft');
+  if(left) left.textContent = Math.max(0, msMines - msFlags);
+}
+
+function revealAllMines(){
+  for(let r=0; r<msRows; r++){
+    for(let c=0; c<msCols; c++){
+      if(msGrid[r][c].mine){
+        const el = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+        if(el && !msGrid[r][c].revealed){
+          el.textContent = '💣';
+          el.style.background = '#c0392b';
+          el.style.color = '#fff';
+        }
+      }
+    }
+  }
+}
 /* ---------------- boot ---------------- */
 loadState();
 if ("serviceWorker" in navigator) {
