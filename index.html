@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Morning Quest — Daily Learning & Brain Training</title>
+
+<meta name="description"
+      content="Morning Quest is a daily learning adventure with quests, brain games, facts, challenges, streaks, and rewards.">
+
+<meta name="keywords"
+      content="daily learning, brain training, educational games, productivity, learning challenges, brain games">
+
+<meta name="author" content="Morning Quest">
+
+<meta name="theme-color" content="#0d1b2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Morning Quest">
+<!-- Social sharing -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Morning Quest — Daily Learning & Brain Training">
+<meta property="og:description"
+      content="Turn your mornings into a daily adventure with quests, brain games, facts, challenges, and rewards.">
+<meta property="og:site_name" content="Morning Quest">
+<!-- Twitter / X sharing -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Morning Quest — Daily Learning & Brain Training">
+<meta name="twitter:description"
+      content="A daily learning adventure packed with quests, brain games, facts, challenges, and rewards.">
+     
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icons/icon-512.png">
+<link rel="manifest" href="manifest.json">
+
+</head>
+<body>
+
+<div id="loading"><div class="loadmark"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp; opening your journal</div></div>
+
+<div class="app">
+  <aside class="rail">
+    <div class="mark">
+      <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14.5" stroke="var(--dawn)" stroke-width="1.4"/><path d="M16 6 L18.5 14 L26 16.5 L18.5 19 L16 27 L13.5 19 L6 16.5 L13.5 14 Z" fill="var(--dawn)"/></svg>
+    </div>
+    <nav class="railnav">
+      <button class="railbtn active" data-view="home" title="Today"><span>🌄</span><span class="raillabel">Today</span></button>
+      <button class="railbtn" data-view="explore" title="Explore"><span>🧭</span><span class="raillabel">Explore</span></button>
+      <button class="railbtn" data-view="stats" title="Journal"><span>📓</span><span class="raillabel">Log</span></button>
+      <button class="railbtn" data-view="ach" title="Patches"><span>🎖️</span><span class="raillabel">Patches</span></button>
+    </nav>
+    <div class="railbottom">
+      <button class="railbtn railtheme" id="themeBtn" title="Toggle light/dark">☀️</button>
+      <button class="railbtn railreset" id="resetBtn" title="Reset progress">↺</button>
+    </div>
+  </aside>
+
+  <main>
+    <!-- HOME -->
+    <section class="view active" id="view-home">
+      <div class="horizon"><svg viewBox="0 0 800 64" preserveAspectRatio="none"><line x1="0" y1="52" x2="800" y2="52" stroke="var(--line)" stroke-width="1"/><circle class="sun" cx="60" cy="40" r="16" fill="url(#g)"/><defs><radialGradient id="g"><stop offset="0%" stop-color="var(--dawn-soft)"/><stop offset="100%" stop-color="var(--ember)"/></radialGradient></defs></svg></div>
+
+      <div class="hero">
+        <div class="greeting">
+          <h1 id="greetLine">Good morning, explorer.</h1>
+          <div class="date" id="date"></div>
+        </div>
+        <div class="trailmeter">
+          <div class="row"><span>Level <b id="level">1</b> · <span id="rank">Rookie</span></span><b id="xptext">0 / 250</b></div>
+          <div class="meterbar"><div class="meterfill" id="levelbar"></div></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div class="section">
+            <div class="section-head">
+              <div><h2>Today's trail</h2><p>Five stops on today's route. Mark each once you've done it — the trail resets after midnight.</p></div>
+              <button class="linkbtn" id="completeAllBtn">Mark all done</button>
+            </div>
+            <div class="trail"><div class="trailline"></div><div id="quests"></div></div>
+            <div class="bonusline"><span>Clear all five stops</span><b>+10 bonus XP</b></div>
+          </div>
+
+          <div class="section">
+            <div class="section-head">
+              <div><h2>Wake-up drills</h2><p>Short exercises to shake off the morning fog.</p></div>
+            </div>
+            <div class="drills" id="drills"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <div class="panelhead">
+              <span>Current streak</span>
+              <span class="bestline">best <b id="best" style="color:var(--ink)">0</b></span>
+            </div>
+            <div class="flamewrap"><span id="streak" class="n">0</span><span class="unit">day streak</span></div>
+            <div class="bestline">last completed: <span id="last">never</span></div>
+            <div class="weekdots" id="weekdots"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panelhead"><span id="sparkLabel">Morning spark</span>
+              <span style="display:flex;gap:6px">
+                <button class="sparktab active" id="tabFact" onclick="setSparkMode('fact')">Fact</button>
+                <button class="sparktab" id="tabQuote" onclick="setSparkMode('quote')">Quote</button>
+              </span>
+            </div>
+            <div class="sparktext" id="sparkText"></div>
+            <div class="sparkrow">
+              <button class="smallbtn" onclick="rollSpark()">🎲 Another</button>
+              <button class="smallbtn" onclick="copySpark()">Copy</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panelhead">
+              <span>Recent patches</span>
+              <button class="linkbtn" data-view="ach" style="padding:4px 10px;font-size:11px">see all</button>
+            </div>
+            <div class="patches" id="patchesMini" style="padding-bottom:14px"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPLORE -->
+    <section class="view" id="view-explore">
+      <h1 style="font-size:28px;margin-bottom:4px">Explore</h1>
+      <p style="color:var(--mist);font-size:13.5px;margin-top:0;max-width:56ch">A handful of places worth a detour. The first one hands you a different corner of the world every time.</p>
+
+      <div class="grid" style="margin-top:22px">
+        <div>
+          <div class="panel">
+            <div class="panelhead"><span>Random Wikipedia article</span></div>
+            <p style="font-size:13px;color:var(--mist);margin:0 0 14px">Every click opens a genuinely random page pulled live from Wikipedia — good for the "Learn something" stop.</p>
+            <a class="linkbtn" href="https://en.wikipedia.org/wiki/Special:Random" target="_blank" rel="noopener" style="display:inline-block" onclick="noteExplore()">🎲 Take me somewhere</a>
+          </div>
+
+          <div class="section" style="margin-top:22px">
+            <div class="section-head"><div><h2>Curated stops</h2><p>Handpicked links for each part of the trail.</p></div></div>
+            <div class="panel">
+              <div class="reslist" id="reslist"></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <div class="panelhead"><span>Places visited</span></div>
+            <div class="flamewrap"><span class="n" id="exploreCount">0</span><span class="unit">links opened</span></div>
+            <div class="bestline" style="margin-top:6px">Every outbound link you open from here is logged, no matter which one.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="view" id="view-stats">
+      <h1 style="font-size:28px;margin-bottom:4px">Your journal</h1>
+      <p style="color:var(--mist);font-size:13.5px;margin-top:0">A running record of the ground you've covered.</p>
+      <div class="statgrid" id="statgrid"></div>
+      <div class="sharebox">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+          <div><h2 style="font-size:16px">Share your progress</h2><p style="color:var(--mist);font-size:12.5px;margin:4px 0 0">A little summary, ready to paste anywhere.</p></div>
+          <button class="smallbtn" onclick="copyShare()">Copy summary</button>
+        </div>
+        <textarea id="shareText" readonly></textarea>
+      </div>
+    </section>
+
+    <!-- ACHIEVEMENTS -->
+    <section class="view" id="view-ach">
+      <h1 style="font-size:28px;margin-bottom:4px">Patches earned</h1>
+      <p style="color:var(--mist);font-size:13.5px;margin-top:0">Collected along the way.</p>
+      <div class="patches" id="patchesBig" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:26px 14px;margin-top:22px"></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="modal"><div class="modalbox"><button class="close" id="modalClose">✕</button><div id="modalContent"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
