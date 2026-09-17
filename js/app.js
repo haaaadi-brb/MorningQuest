@@ -33,12 +33,12 @@ const quests=[
  ['🏕️','Camp time','Play one browser or old-school game, just for fun.',10,'https://www.crazygames.com','Browse games']
 ];
 const drills=[
- ['🧩','Daily puzzle','Logic · 5 min','openPuzzle'],
- ['🚀','Reaction test','Reflex · 2 min','openReaction'],
- ['⌨️','Typing challenge','Speed · 3 min','openTyping'],
- ['➗','Math arena','Math · 5 min','openMath'],
- ['🧠','Memory match','Memory · 3 min','openMemory'],
- ['🐍','Snake','Arcade · 5 min','openSnake']
+  ['🧩','Daily puzzle','Logic · 5 min','openPuzzle'],
+  ['🚀','Reaction test','Reflex · 2 min','openReaction'],
+  ['⌨️','Typing challenge','Speed · 3 min','openTyping'],
+  ['➗','Math arena','Math · 5 min','openMath'],
+  ['🧠','Memory match','Memory · 3 min','openMemory'],
+  ['🐍','Snake','Arcade · 5 min','openSnake'],
   ['💣','Minesweeper','Logic · 5 min','openMinesweeper']
 ];
 const achievements=[
